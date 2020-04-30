@@ -1,13 +1,21 @@
 <template>
     <div>
-        <el-form :rules="rules" ref="loginForm" :model="loginForm" class="loginContainer">
+        <el-form :rules="rules"
+                 ref="loginForm"
+                 :model="loginForm"
+                 class="loginContainer"
+                 v-loading="loading"
+                 element-loading-text="正在登录"
+                 element-loading-spinner="el-icon-loading"
+                 element-loading-background="rgba(	30,144,255, 0.8)">
             <h3 class="loginTitle">系统登录</h3>
             <el-form-item label="用户名" prop="username">
                 <el-input type="text" v-model="loginForm.username" placeholder="请输入用户名"></el-input>
             </el-form-item>
 
             <el-form-item label="用户名" prop="username">
-                <el-input type="password" v-model="loginForm.password" placeholder="请输入密码" @keydown.enter.native="submitLogin"></el-input>
+                <el-input type="password" v-model="loginForm.password" placeholder="请输入密码"
+                          @keydown.enter.native="submitLogin"></el-input>
             </el-form-item>
 
             <el-checkbox v-model="checked" class="loginRemember"></el-checkbox>
@@ -22,6 +30,7 @@
         name: "Login",
         data() {
             return {
+                loading: false,
                 loginForm: {
                     username: 'admin',
                     password: '123'
@@ -33,19 +42,21 @@
                 }
             }
         },
-        methods:{
-            submitLogin(){
+        methods: {
+            submitLogin() {
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
-                        this.postKeyValueRequest('/doLogin',this.loginForm).then(resp=>{
-                             if (resp) {
-                                 window.sessionStorage.setItem("user",JSON.stringify(resp.object));
-                                 let path = this.$route.query.redirect;
-                                 this.$router.replace((path=='/'||path == undefined)?'/home':path);
-                             }
+                        this.loading = true;
+                        this.postKeyValueRequest('/doLogin', this.loginForm).then(resp => {
+                            this.loading = false;
+                            if (resp) {
+                                window.sessionStorage.setItem("user", JSON.stringify(resp.object));
+                                let path = this.$route.query.redirect;
+                                this.$router.replace((path == '/' || path == undefined) ? '/home' : path);
+                            }
                         })
                     } else {
-                       this.$message.error("请输入有效字段")
+                        this.$message.error("请输入有效字段")
                         return false;
                     }
                 });
@@ -55,22 +66,24 @@
 </script>
 
 <style>
-    .loginContainer{
-        border-radius:15px;
-        background-clip:padding-box;
+    .loginContainer {
+        border-radius: 15px;
+        background-clip: padding-box;
         margin: 180px auto;
         width: 350px;
         padding: 15px 35px 15px 35px;
         background: #fff;
-        border:  1px solid #eaeaea;
+        border: 1px solid #eaeaea;
         box-shadow: 0 0 3px #cac6c6;
     }
-    .loginTitle{
+
+    .loginTitle {
         margin: 15px auto 20px;
         text-align: center;
         color: #505458;
     }
-    .loginRemember{
+
+    .loginRemember {
         text-align: left;
         margin: 0px 0px 15px 0px;
     }

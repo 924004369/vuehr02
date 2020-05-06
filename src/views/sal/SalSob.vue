@@ -1,8 +1,8 @@
 <template>
     <div>
         <div style="display: flex;justify-content: space-between">
-            <el-button type="primary" icon="el-icon-plus" size="mini" @click="dialogVisible=true">添加套账</el-button>
-            <el-button type="success" icon="el-icon-refresh" size="mini"></el-button>
+            <el-button type="primary" icon="el-icon-plus" size="mini" @click="showDialog(0)">添加套账</el-button>
+            <el-button type="success" icon="el-icon-refresh" size="mini" @click="refresh()"></el-button>
         </div>
 
         <div style="margin-top: 5px">
@@ -113,15 +113,15 @@
                         label="操作"
                         align="center"
                         width="150">
-                    <template>
-                        <el-button size="mini" type="primary">编辑</el-button>
-                        <el-button size="mini" type="danger">删除</el-button>
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="primary" @click="showDialog(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="danger" @click="cancel(scope.row)">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
 
             <el-dialog
-                    title="添加工资账套"
+                    :title="dialogTitle"
                     :visible.sync="dialogVisible"
                     width="30%">
                 <div style="display: flex ;justify-content: space-around;align-items: center">
@@ -144,10 +144,10 @@
                 </div>
 
                 <span slot="footer" class="dialog-footer">
-                    <el-button @click="dialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+
                   </span>
             </el-dialog>
+
         </div>
     </div>
 </template>
@@ -184,12 +184,50 @@
                     medicalbase: 0,
                     accumulationfundper: 0,
                     accumulationfundbase: 0,
-                    name: ''
+                    name: '',
+                    id:''
                 },
-                flag: false
+                flag: false,
+                dialogTitle:''
             }
         },
         methods: {
+            showDialog(pel){
+                this.dialogVisible=true;
+                if (pel ==0){
+                    this.dialogTitle="添加工资账套";
+                    this.active=0
+                    this.salaryItem.basicsalary=''
+                        this.salaryItem.trafficsalary=''
+                        this.salaryItem.lunchsalary=''
+                        this.salaryItem.bonus=''
+                        this.salaryItem.pensionper=''
+                        this.salaryItem.pensionbase=''
+                        this.salaryItem.medicalper=''
+                        this.salaryItem.medicalbase=''
+                        this.salaryItem.accumulationfundper=''
+                        this.salaryItem.accumulationfundbase=''
+                        this.salaryItem.name=''
+                        this.salaryItem.id=''
+                }
+                else{
+                    this.dialogTitle="编辑工资账套";
+                    this.active=0;
+                    this.salaryItem.basicsalary=pel.basicsalary,
+                    this.salaryItem.trafficsalary=pel.trafficsalary,
+                    this.salaryItem.lunchsalary=pel.lunchsalary,
+                    this.salaryItem.bonus=pel.bonus,
+                    this.salaryItem.pensionper=pel.pensionper,
+                    this.salaryItem.pensionbase=pel.pensionbase,
+                    this.salaryItem.medicalper=pel.medicalper,
+                    this.salaryItem.medicalbase=pel.medicalbase,
+                    this.salaryItem.accumulationfundper=pel.accumulationfundper,
+                    this.salaryItem.accumulationfundbase=pel.accumulationfundbase,
+                    this.salaryItem.name=pel.name;
+                    this.salaryItem.id=pel.id
+                }
+
+            },
             initTable() {
                 this.getRequest("/sal/").then(resp => {
                     if (resp) {
@@ -200,15 +238,27 @@
             next() {
 
                 if (this.active == 10) {
-                    this.postRequest("/sal/", this.salaryItem).then(resp => {
-                        if (resp) {
-                            this.initTable()
-                        }
-                    })
+                    if (this.salaryItem.id) {
+                        this.putRequest("/sal/",this.salaryItem).then(resp=>{
+                            if (resp){
+                                this.initTable()
+                                this.dialogVisible=false
+                            }
+                        })
+                    }else {
+                        this.postRequest("/sal/", this.salaryItem).then(resp => {
+                            if (resp) {
+                                this.initTable()
+                                this.dialogVisible=false
+                            }
+                        })
+                    }
+                    
+
                     return;
                 }
                 this.active++;
-                if (this.active > 10) {
+                if (this.active > 0) {
                     this.flag = true
                 }
             },
@@ -225,6 +275,27 @@
                     this.flag = false
                     return;
                 }
+            },
+            cancel(row){
+                this.$confirm('确定删除【'+row.name+'】 吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteRequest("/sal/"+row.id).then(resp=>{
+                        if (resp){
+                            this.initTable()
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            refresh(){
+                this.initTable()
             }
         },
         mounted() {

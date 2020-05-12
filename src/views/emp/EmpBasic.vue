@@ -232,7 +232,7 @@
             <div style="display: flex;flex-direction: row-reverse">
                 <el-pagination
                         background
-                        layout="sizes, prev, pager, next, jumper, ->, total, slot"
+                        layout="sizes, prev, pager, next, jumper"
                         :total="total"
                         @size-change="sizeChange"
                         @current-change="currentChange">
